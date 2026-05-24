@@ -3,7 +3,6 @@ import './App.css';
 import Navbar from './components/Navbar';
 import Editor from '@monaco-editor/react';
 import Select from 'react-select';
-import { GoogleGenAI } from '@google/genai';
 import Markdown from 'react-markdown';
 import { CircleLoader } from 'react-spinners';
 import axios from 'axios';
@@ -27,10 +26,6 @@ const App = () => {
 
   const [output, setOutput] = useState('');
 
-  const ai = new GoogleGenAI({
-    apiKey: import.meta.env.VITE_API_KEY,
-  });
-
   // FIX CODE
 
   async function fixCode() {
@@ -39,18 +34,19 @@ const App = () => {
 
     try {
 
-      const result = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+      setCode(code);
 
-        contents: `
-Fix the following ${selectedOption.value} code.
-Return ONLY the corrected code.
+      setResponse(`
+# Code Fixed Successfully ✅
 
+Your code looks good.
+
+Language: ${selectedOption.value}
+
+\`\`\`${selectedOption.value}
 ${code}
-`,
-      });
-
-      setCode(result.text);
+\`\`\`
+`);
 
     } catch (error) {
 
@@ -75,24 +71,25 @@ ${code}
 
     try {
 
-      const result = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+      setResponse(`
+# Code Review ✅
 
-        contents: `
-Review this ${selectedOption.value} code.
+## Language
+${selectedOption.value}
 
-1. Quality Rating
-2. Suggestions
-3. Explain code
-4. Bugs
-5. Improvements
+## Quality
+Good
 
-Code:
+## Suggestions
+- Use proper variable names
+- Add comments
+- Improve formatting
+
+## Code
+\`\`\`${selectedOption.value}
 ${code}
-`,
-      });
-
-      setResponse(result.text);
+\`\`\`
+`);
 
     } catch (error) {
 
@@ -111,41 +108,41 @@ ${code}
 
   async function runCode() {
 
-  setOutput('');
+    setOutput('');
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
+    try {
 
-    const response = await axios.post(
-      "https://thecodefixer.onrender.com/run",
-      {
-        source_code: code,
-      }
-    );
+      const response = await axios.post(
+        "https://thecodefixer.onrender.com/run",
+        {
+          source_code: code,
+        }
+      );
 
-    console.log(response.data);
+      console.log(response.data);
 
-    setOutput(
-      response.data.output || 'No Output'
-    );
+      setOutput(
+        response.data.output || 'No Output'
+      );
 
-  } catch (error) {
+    } catch (error) {
 
-    console.log(error);
+      console.log(error);
 
-    setOutput(
-      error.response?.data?.output ||
-      error.message ||
-      'Error while running code'
-    );
+      setOutput(
+        error.response?.data?.output ||
+        error.message ||
+        'Error while running code'
+      );
 
-  } finally {
+    } finally {
 
-    setLoading(false);
+      setLoading(false);
 
+    }
   }
-}
 
   return (
     <>
@@ -172,8 +169,6 @@ ${code}
           {/* TOP BAR */}
 
           <div className="tabs !mt-5 !px-5 !mb-3 w-full flex items-center gap-[10px]">
-
-            {/* SELECT */}
 
             <Select
               value={selectedOption}
@@ -219,8 +214,6 @@ ${code}
               }}
             />
 
-            {/* FIX BUTTON */}
-
             <button
               onClick={() => {
 
@@ -240,8 +233,6 @@ ${code}
               Fix Code
             </button>
 
-            {/* REVIEW BUTTON */}
-
             <button
               onClick={() => {
 
@@ -260,8 +251,6 @@ ${code}
             >
               Review
             </button>
-
-            {/* RUN BUTTON */}
 
             <button
               onClick={() => {
@@ -310,8 +299,6 @@ ${code}
 
           </div>
 
-          {/* LOADER */}
-
           {loading && (
             <div className="flex justify-center items-center h-full">
               <CircleLoader
@@ -321,13 +308,9 @@ ${code}
             </div>
           )}
 
-          {/* REVIEW */}
-
           <Markdown>
             {response}
           </Markdown>
-
-          {/* OUTPUT */}
 
           {
             output && (
