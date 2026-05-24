@@ -1,65 +1,56 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const { exec } = require('child_process');
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs");
+const { exec } = require("child_process");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.post('/run', async (req, res) => {
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
+app.post("/run", async (req, res) => {
   try {
+    const { source_code } = req.body;
 
-    const { source_code } = req.body;v
+    if (!source_code) {
+      return res.status(400).json({
+        output: "No source code provided",
+      });
+    }
 
-    // TEMP FILE CREATE
+    fs.writeFileSync("temp.js", source_code);
 
-    fs.writeFileSync('temp.js', source_code);
-
-    // RUN CODE
-
-    exec('node temp.js', (error, stdout, stderr) => {
-
+    exec("node temp.js", (error, stdout, stderr) => {
       if (error) {
-
         return res.json({
           output: error.message,
         });
-
       }
 
       if (stderr) {
-
         return res.json({
           output: stderr,
         });
-
       }
 
       return res.json({
         output: stdout,
       });
-
     });
 
-  } catch (error) {
-
-    console.log(error);
-
-    res.status(500).json({
-
-      output: 'Execution failed',
-
+  } catch (err) {
+    return res.status(500).json({
+      output: "Execution failed",
     });
-
   }
-
 });
 
-app.listen(5000, () => {
+const PORT = process.env.PORT || 5000;
 
-  console.log('Server running on port 5000');
-
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
