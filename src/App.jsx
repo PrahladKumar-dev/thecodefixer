@@ -111,52 +111,41 @@ ${code}
 
   async function runCode() {
 
-    setOutput('');
+  setOutput('');
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
+  try {
 
-      const response = await axios.post(
+    const response = await axios.post(
+      "https://thecodefixer.onrender.com/run",
+      {
+        source_code: code,
+      }
+    );
 
-       " https://thecodefixer.onrender.com/run",
+    console.log(response.data);
 
-        {
-          source_code: code,
-        }
+    setOutput(
+      response.data.output || 'No Output'
+    );
 
-      );
+  } catch (error) {
 
-      console.log(response.data);
+    console.log(error);
 
-      setOutput(
+    setOutput(
+      error.response?.data?.output ||
+      error.message ||
+      'Error while running code'
+    );
 
-        response.data.output ||
+  } finally {
 
-        'No Output'
+    setLoading(false);
 
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      setOutput(
-
-        error.response?.data?.output ||
-
-        error.message ||
-
-        'Error while running code'
-
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
   }
+}
 
   return (
     <>
